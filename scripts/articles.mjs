@@ -81,7 +81,7 @@ async function fetchArxivMetadata(arxivId) {
 }
 
 export default async function main() {
-  const publicationsPath = path.join(__dirname, '../data/blog/publications')
+  const publicationsPath = path.join(__dirname, '../data/blog/arxiv-publications')
   if (!fs.existsSync(publicationsPath)) {
     fs.mkdirSync(publicationsPath, { recursive: true })
   }
