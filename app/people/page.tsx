@@ -11,11 +11,11 @@ export default function Page() {
 
   const AffiliationOrder = {
     Faculty: 1,
-    "PhD Student": 2,
-    "Research Scientist": 3,
-    "Alumni": 4,
+    'PhD Student': 2,
+    'Research Scientist': 3,
+    Alumni: 4,
     Unknown: 999, // Default for affiliations not listed
-  } as const;
+  } as const
 
   type AffiliationOrderKeys = keyof typeof AffiliationOrder
 
@@ -26,11 +26,14 @@ export default function Page() {
     return `${affiliation}s`
   }
 
-  const authorsByAffiliation = authors.reduce((acc, author) => {
-    const affiliation = author.affiliation || 'Unknown'
-    acc[affiliation] = [...(acc[affiliation] || []), author]
-    return acc
-  }, {} as Record<string, Authors[]>)
+  const authorsByAffiliation = authors.reduce(
+    (acc, author) => {
+      const affiliation = author.affiliation || 'Unknown'
+      acc[affiliation] = [...(acc[affiliation] || []), author]
+      return acc
+    },
+    {} as Record<string, Authors[]>
+  )
 
   const sortedAffiliations = Object.entries(authorsByAffiliation).sort(([a], [b]) => {
     const orderA = AffiliationOrder[a as AffiliationOrderKeys] || AffiliationOrder.Unknown
@@ -42,12 +45,10 @@ export default function Page() {
     <div className="space-y-12">
       {sortedAffiliations.map(([affiliation, authors]) => (
         <div key={affiliation} className="space-y-6">
-          <h1
-            className="text-xl font-extrabold leading-7 tracking-tight text-gray-900 dark:text-gray-100 sm:text-2xl sm:leading-8 md:text-4xl md:leading-10"
-          >
+          <h1 className="text-xl font-extrabold leading-7 tracking-tight text-gray-900 dark:text-gray-100 sm:text-2xl sm:leading-8 md:text-4xl md:leading-10">
             {pluralize(affiliation)}
           </h1>
-          <div className="border-t border-gray-300 dark:border-gray-700 my-2"></div>
+          <div className="my-2 border-t border-gray-300 dark:border-gray-700"></div>
 
           <div>
             {authors.map((author) => {

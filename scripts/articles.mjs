@@ -1,73 +1,69 @@
-/* scrapArxiv.mjs */
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { spawnSync } from 'child_process';
-import axios from 'axios';
-import xml2js from 'xml2js';
+import fs from 'fs'
+import path from 'path'
+import { fileURLToPath } from 'url'
+import axios from 'axios'
+import xml2js from 'xml2js'
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
-const ARTICLES_JS_PATH = path.join(__dirname, '../articlesData.js');
+const ARTICLES_JS_PATH = path.join(__dirname, '../articlesData.js')
 
 // Check if the JavaScript file exists
-let articlesData;
+let articlesData
 if (fs.existsSync(ARTICLES_JS_PATH)) {
   try {
-    const module = await import(`file://${ARTICLES_JS_PATH}`);
-    articlesData = module.default || [];
+    // eslint-disable-next-line @next/next/no-assign-module-variable
+    const module = await import(`file://${ARTICLES_JS_PATH}`)
+    articlesData = module.default || []
   } catch (err) {
-    console.error('Error importing articlesData.js:', err);
-    process.exit(1);
+    console.error('Error importing articlesData.js:', err)
+    process.exit(1)
   }
 } else {
-  console.error(`File ${ARTICLES_JS_PATH} does not exist. Please ensure the file is available.`);
-  process.exit(1);
+  console.error(`File ${ARTICLES_JS_PATH} does not exist. Please ensure the file is available.`)
+  process.exit(1)
 }
 
 async function fetchArxivMetadata(arxivId) {
-  // The Arxiv API endpoint (Atom XML format):
-  const arxivApiUrl = `http://export.arxiv.org/api/query?search_query=id:${arxivId}`;
+  const arxivApiUrl = `http://export.arxiv.org/api/query?search_query=id:${arxivId}`
 
   try {
-    const response = await axios.get(arxivApiUrl);
-    const xmlData = response.data;
+    const response = await axios.get(arxivApiUrl)
+    const xmlData = response.data
 
-    // Parse XML to JS object
-    const parser = new xml2js.Parser();
-    const parsed = await parser.parseStringPromise(xmlData);
+    const parser = new xml2js.Parser()
+    const parsed = await parser.parseStringPromise(xmlData)
 
-    // The first entry should hold the data for that arxivId
-    const entry = parsed.feed.entry && parsed.feed.entry[0];
+    const entry = parsed.feed.entry && parsed.feed.entry[0]
     if (!entry) {
-      throw new Error(`No entry found for ${arxivId}`);
+      throw new Error(`No entry found for ${arxivId}`)
     }
 
-    const rawTitle = entry.title?.[0]?.trim() || 'No title';
-    const rawSummary = entry.summary?.[0]?.trim() || 'No summary';
+    const rawTitle = entry.title?.[0]?.trim() || 'No title'
+    const rawSummary = entry.summary?.[0]?.trim() || 'No summary'
 
     const cleanSummary = rawSummary
-      .replace(/(\$.*?\$|\[.*?\])/g, '') // Remove inline LaTeX ($...$ or \[...\])
-      .replace(/\\\w+({[^}]*})?/g, '')   // Remove LaTeX commands (e.g., \textbf{})
-      .replace(/\s+/g, ' ')              // Normalize whitespace
-      .trim();                           // Trim leading/trailing spaces
+      .replace(/(\$.*?\$|\[.*?\])/g, '')
+      .replace(/\\\w+({[^}]*})?/g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
 
-    const rawAuthors = entry.author?.map((authorObj) => authorObj.name?.[0]);
-    const authors = Array.isArray(rawAuthors) ? rawAuthors : [];
-    
-    let comments = '';
+    const rawAuthors = entry.author?.map((authorObj) => authorObj.name?.[0])
+    const authors = Array.isArray(rawAuthors) ? rawAuthors : []
+
+    let comments = ''
     if (entry['arxiv:comment']) {
-      const commentNode = entry['arxiv:comment'][0];
+      const commentNode = entry['arxiv:comment'][0]
       if (typeof commentNode === 'string') {
-        comments = commentNode;
+        comments = commentNode
       } else if (typeof commentNode === 'object' && commentNode._) {
-        comments = commentNode._;
+        comments = commentNode._
       }
     }
 
-    const published = entry.published?.[0] || '';
-    const updated = entry.updated?.[0] || '';
+    const published = entry.published?.[0] || ''
+    const updated = entry.updated?.[0] || ''
     // const categories = entry.category?.map(cat => cat.$.term) || [];
 
     return {
@@ -76,63 +72,51 @@ async function fetchArxivMetadata(arxivId) {
       authors,
       comments,
       published,
-      updated
-    };
+      updated,
+    }
   } catch (error) {
-    console.error(`Error fetching metadata for Arxiv ID ${arxivId}:`, error);
-    return null;
+    console.error(`Error fetching metadata for Arxiv ID ${arxivId}:`, error)
+    return null
   }
 }
 
-// 3. Main script
-async function main() {
-  // Path to the publications folder
-  const publicationsPath = path.join(__dirname, '../data/blog/publications');
-
-  // Ensure the folder exists
+export default async function main() {
+  const publicationsPath = path.join(__dirname, '../data/blog/publications')
   if (!fs.existsSync(publicationsPath)) {
-    fs.mkdirSync(publicationsPath, { recursive: true });
+    fs.mkdirSync(publicationsPath, { recursive: true })
   }
 
   for (const article of articlesData) {
-    // Extract the arxivId from the URL. Arxiv URLs typically look like:
-    //  https://arxiv.org/abs/2405.13022
-    // We'll match everything after '/abs/'.
-    const match = article.url.match(/abs\/([^/]+)/);
+    const match = article.url.match(/abs\/([^/]+)/)
     if (!match) {
-      console.warn(`Could not parse Arxiv ID from URL: ${article.url}`);
-      continue;
+      console.warn(`Could not parse Arxiv ID from URL: ${article.url}`)
+      continue
     }
-    const arxivId = match[1];
+    const arxivId = match[1]
 
     // Check if file already exists
-    const mdxFileName = `${arxivId}.mdx`;
-    const mdxFilePath = path.join(publicationsPath, mdxFileName);
+    const mdxFileName = `${arxivId}.mdx`
+    const mdxFilePath = path.join(publicationsPath, mdxFileName)
     if (fs.existsSync(mdxFilePath)) {
-      console.log(`File "${mdxFileName}" already exists. Skipping.`);
-      continue;
+      console.log(`File "${mdxFileName}" already exists. Skipping.`)
+      continue
     }
 
-    console.log(`Fetching Arxiv metadata for ${arxivId}...`);
-    const metadata = await fetchArxivMetadata(arxivId);
+    console.log(`Fetching Arxiv metadata for ${arxivId}...`)
+    const metadata = await fetchArxivMetadata(arxivId)
     if (!metadata) {
-      console.warn(`Skipping ${arxivId} due to metadata fetch error.`);
-      continue;
+      console.warn(`Skipping ${arxivId} due to metadata fetch error.`)
+      continue
     }
 
-    const { title, summary, authors, comments, published, updated } = metadata;
+    const { title, summary, authors, comments, published, updated } = metadata
 
-    // Format date from '2024-07-03T00:00:00Z' -> '2024-07-03' 
-    // if you want. Or store the raw published date as is.
-    // A quick safe slice: 
-    const date = published.slice(0, 10) || '';
-    const updated_date = updated.slice(0, 10) || '';
+    const date = published.slice(0, 10) || ''
+    const updated_date = updated.slice(0, 10) || ''
 
-    // 4. Create an MDX file with a frontmatter and the abstract
-    // Below is an example frontmatter. Feel free to customize or add fields.
     const frontmatter = `---
-title: '${title.replace(/'/g, "’")}'
-authors: [${authors.map((auth) => `'${auth.replace(/'/g, "’")}'`).join(',')}]
+title: '${title.replace(/'/g, '’')}'
+authors: [${authors.map((auth) => `'${auth.replace(/'/g, '’')}'`).join(',')}]
 articleUrl: '${article.url}'
 comments: "${comments?.replace(/"/g, '\\"')}"
 date: '${date}'
@@ -142,32 +126,14 @@ summary: '${summary}'
 
 ## Abstract
 
-${summary}}
-`;
+${summary}
+`
 
     try {
-      fs.writeFileSync(mdxFilePath, frontmatter, 'utf8');
-      console.log(`Created file: ${mdxFilePath}`);
+      fs.writeFileSync(mdxFilePath, frontmatter, 'utf8')
+      console.log(`Created file: ${mdxFilePath}`)
     } catch (err) {
-      console.error(`Error writing file "${mdxFilePath}":`, err);
+      console.error(`Error writing file "${mdxFilePath}":`, err)
     }
   }
 }
-
-// async function cleanup() {
-//   if (fs.existsSync(ARTICLES_JS_PATH)) {
-//     try {
-//       fs.unlinkSync(ARTICLES_JS_PATH);
-//       console.log(`Removed file: ${ARTICLES_JS_PATH}`);
-//     } catch (err) {
-//       console.error(`Error removing file "${ARTICLES_JS_PATH}":`, err);
-//     }
-//   }
-// }
-
-main()
-  // .then(() => cleanup())
-  .catch((err) => {
-    console.error('Unexpected error in scrapArxiv script:', err);
-    process.exit(1);
-  });

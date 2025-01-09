@@ -67,7 +67,7 @@ export default function PostLayout({ content, authorDetails, next, prev, childre
                     View Full Article &rarr;
                   </Link>
                 </div>
-                )}
+              )}
             </div>
           </header>
           <div className="grid-rows-[auto_1fr] divide-y divide-gray-200 pb-8 dark:divide-gray-700 xl:grid xl:grid-cols-4 xl:gap-x-6 xl:divide-y-0">
@@ -75,36 +75,39 @@ export default function PostLayout({ content, authorDetails, next, prev, childre
               <dt className="sr-only">Authors</dt>
               <dd>
                 <ul className="flex flex-wrap justify-center gap-4 sm:space-x-12 xl:block xl:space-x-0 xl:space-y-8">
-                  {authorDetails.map((author) => (
-                    author?.name && (<li className="flex items-center space-x-2" key={author.name}>
-                      {author.avatar && (
-                        <Image
-                          src={author.avatar}
-                          width={38}
-                          height={38}
-                          alt="avatar"
-                          className="h-10 w-10 rounded-full"
-                        />
-                      )}
-                      <dl className="whitespace-nowrap text-sm font-medium leading-5">
-                        <dt className="sr-only">Name</dt>
-                        <dd className="text-gray-900 dark:text-gray-100">{author.name}</dd>
-                        <dt className="sr-only">Twitter</dt>
-                        <dd>
-                          {author.twitter && (
-                            <Link
-                              href={author.twitter}
-                              className="text-primary-500 hover:text-primary-600 dark:hover:text-primary-400"
-                            >
-                              {author.twitter
-                                .replace('https://twitter.com/', '@')
-                                .replace('https://x.com/', '@')}
-                            </Link>
+                  {authorDetails.map(
+                    (author) =>
+                      author?.name && (
+                        <li className="flex items-center space-x-2" key={author.name}>
+                          {author.avatar && (
+                            <Image
+                              src={author.avatar}
+                              width={38}
+                              height={38}
+                              alt="avatar"
+                              className="h-10 w-10 rounded-full"
+                            />
                           )}
-                        </dd>
-                      </dl>
-                    </li>)
-                  ))}
+                          <dl className="whitespace-nowrap text-sm font-medium leading-5">
+                            <dt className="sr-only">Name</dt>
+                            <dd className="text-gray-900 dark:text-gray-100">{author.name}</dd>
+                            <dt className="sr-only">Twitter</dt>
+                            <dd>
+                              {author.twitter && (
+                                <Link
+                                  href={author.twitter}
+                                  className="text-primary-500 hover:text-primary-600 dark:hover:text-primary-400"
+                                >
+                                  {author.twitter
+                                    .replace('https://twitter.com/', '@')
+                                    .replace('https://x.com/', '@')}
+                                </Link>
+                              )}
+                            </dd>
+                          </dl>
+                        </li>
+                      )
+                  )}
                 </ul>
               </dd>
             </dl>
