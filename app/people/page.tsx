@@ -13,6 +13,7 @@ export default function Page() {
     Faculty: 1,
     "PhD Student": 2,
     "Research Scientist": 3,
+    "Alumni": 4,
     Unknown: 999, // Default for affiliations not listed
   } as const;
 
