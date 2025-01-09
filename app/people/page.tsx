@@ -11,16 +11,14 @@ export default function Page() {
 
   return (
     <>
-      {
-        authors.map((author: Authors) => {
-          const mainContent = coreContent(author)
-          return (
-            <AuthorLayout key={author.name} content={mainContent}>
-              <MDXLayoutRenderer code={author.body.code} />
-            </AuthorLayout>
-          )
-        })
-      }
+      {authors.map((author: Authors) => {
+        const mainContent = coreContent(author)
+        return (
+          <AuthorLayout key={author.name} content={mainContent}>
+            <MDXLayoutRenderer code={author.body.code} />
+          </AuthorLayout>
+        )
+      })}
     </>
   )
 }
