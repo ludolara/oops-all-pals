@@ -1,5 +1,6 @@
 import Link from '@/components/Link'
 import Tag from '@/components/Tag'
+import Image from '@/components/Image'
 import siteMetadata from '@/data/siteMetadata'
 import { formatDate } from 'pliny/utils/formatDate'
 
@@ -33,10 +34,12 @@ export default function Home({ posts }) {
                         </dd>
                       </dl>
                       {images?.length > 0 && (
-                        <img
+                        <Image
                           src={images[0]}
-                          alt={`${title} image`}
-                          className="w-full h-auto rounded-lg"
+                          alt={title}
+                          className="h-auto w-full rounded-lg"
+                          width={720}
+                          height={720}
                           loading="lazy"
                         />
                       )}
